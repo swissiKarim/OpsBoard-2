@@ -2,8 +2,75 @@
 {% block title %}Dashboard – OpsBoard{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
-<section data-testid="dashboard">
-  <h1>Dashboard</h1>
-  <p>Welcome to OpsBoard. More data will appear here as the application grows.</p>
+<section data-testid="dashboard" class="dashboard">
+
+  <!-- KPI Tiles -->
+  <div class="kpi-grid" data-testid="kpi-grid">
+
+    <div class="kpi-tile" data-testid="kpi-open-incidents">
+      <span class="kpi-label">Open Incidents</span>
+      <span class="kpi-value" data-testid="open-incidents-count" id="open-incidents-count">{{ open_incidents_count }}</span>
+      <span class="kpi-sub" data-testid="kpi-open-incidents-sub">currently active</span>
+    </div>
+
+    <div class="kpi-tile" data-testid="kpi-affected-services">
+      <span class="kpi-label">Affected Services</span>
+      <span class="kpi-value" data-testid="affected-services-count">{{ affected_services_count }}</span>
+      <span class="kpi-sub" data-testid="kpi-affected-services-sub">degraded or outage</span>
+    </div>
+
+    <div class="kpi-tile" data-testid="kpi-mean-resolution">
+      <span class="kpi-label">Mean Resolution Time</span>
+      <span class="kpi-value" data-testid="mean-resolution-value">
+        {% if mean_resolution_hours is not none %}
+          {{ mean_resolution_hours }}h
+        {% else %}
+          —
+        {% endif %}
+      </span>
+      <span class="kpi-sub" data-testid="kpi-mean-resolution-sub">last 30 days</span>
+    </div>
+
+    <div class="kpi-tile kpi-tile--chart" data-testid="kpi-chart">
+      <span class="kpi-label">Incidents per Day</span>
+      <span class="kpi-sub" data-testid="kpi-chart-sub">last 14 days</span>
+      <div class="chart-container" data-testid="chart-incidents-per-day">
+        {{ svg_chart | safe }}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recently updated incidents -->
+  <div class="recent-incidents" data-testid="recently-updated-incidents">
+    <h2 class="section-title" data-testid="recently-updated-title">Recently Updated</h2>
+    {% if recent_incidents %}
+    <table class="incidents-table" data-testid="recent-incidents-table">
+      <thead>
+        <tr>
+          <th data-testid="col-title">Title</th>
+          <th data-testid="col-service">Service</th>
+          <th data-testid="col-severity">Severity</th>
+          <th data-testid="col-status">Status</th>
+          <th data-testid="col-updated">Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inc in recent_incidents %}
+        <tr data-testid="recent-incident-row-{{ inc.id }}">
+          <td><a href="/incidents/{{ inc.id }}" data-testid="recent-incident-link-{{ inc.id }}">{{ inc.title }}</a></td>
+          <td data-testid="recent-incident-service-{{ inc.id }}">{{ inc.service.name if inc.service else '—' }}</td>
+          <td><span class="badge badge--severity" data-testid="recent-incident-severity-{{ inc.id }}">{{ inc.severity }}</span></td>
+          <td><span class="badge badge--{{ inc.status }}" data-testid="recent-incident-status-{{ inc.id }}">{{ inc.status }}</span></td>
+          <td data-testid="recent-incident-updated-{{ inc.id }}">{{ inc.updated_at.strftime('%Y-%m-%d %H:%M') if inc.updated_at else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state" data-testid="no-recent-incidents">No incidents yet. All systems operational.</p>
+    {% endif %}
+  </div>
+
 </section>
 {% endblock %}

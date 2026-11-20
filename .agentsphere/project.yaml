@@ -1,6 +1,7 @@
 schemaVersion: 4
 rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, incident
-  CRUD/status-machine/timeline, and pytest suite
+  CRUD/status-machine/timeline, dashboard KPIs with inline-SVG bar chart, and pytest
+  suite
 components:
 - name: app
   path: .
@@ -34,6 +35,10 @@ definition_of_done:
 - POST /api/incidents/{id}/status enforces open→investigating→resolved only
 - PUT /api/incidents/{id} updates title/description but not status/severity
 - GET /incidents/{id} renders timeline and comment input with data-testid attributes
+- GET / and GET /dashboard render dashboard with four KPI tiles
+- Dashboard lists five most recently updated incidents
+- SVG bar chart generated server-side by app/svg_builder.py without external libraries
+- All KPI tile and chart container elements have data-testid attributes
 network:
   needs: []
 services:
