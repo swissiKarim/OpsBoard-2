@@ -2,11 +2,10 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
 from app import models  # noqa: F401 – ensures all models are registered on Base
-from app.database import engine, get_db
+from app.database import get_db
 from app.status_engine import compute_service_status
 
 router = APIRouter(prefix="/api/services", tags=["services"])
@@ -39,11 +38,15 @@ class ServiceResponse(BaseModel):
 
 
 @router.get("/db-tables")
-def db_tables():
+def db_tables(db: Session = Depends(get_db)):
     """Return list of table names – used by SC-1 migration check."""
-    inspector = sa_inspect(engine)
+    from sqlalchemy import text
+
+    rows = db.execute(
+        text("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+    ).fetchall()
+    table_names = [r[0] for r in rows]
     # Return as comma-separated string so platform `contains` works as substring check
-    table_names = inspector.get_table_names()
     return {"tables": ",".join(table_names)}
 
 
