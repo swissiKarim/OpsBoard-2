@@ -1,6 +1,6 @@
 schemaVersion: 4
-rationale: FastAPI skeleton with SQLite/SQLAlchemy, Jinja2 templates, health endpoint
-  and pytest suite
+rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, and
+  pytest suite
 components:
 - name: app
   path: .
@@ -29,6 +29,7 @@ definition_of_done:
 - ruff check . passes without errors
 - python -m pytest passes without errors
 - GET /health returns 200 with {"status":"ok"}
+- compute_service_status() correctly derives outage/degraded/operational
 network:
   needs: []
 services:
