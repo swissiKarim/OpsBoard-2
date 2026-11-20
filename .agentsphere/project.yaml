@@ -26,7 +26,7 @@ components:
       source: platform_default
 definition_of_done:
 - ruff check . passes without errors
-- pytest passes without errors
+- python -m pytest passes without errors
 - GET /health returns 200 with {"status":"ok"}
 network:
   needs: []
