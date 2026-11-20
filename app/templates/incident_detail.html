@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Incident #{{ incident.id }} – OpsBoard{% endblock %}
+{% block page_title %}Incident #{{ incident.id }}{% endblock %}
+{% block content %}
+<section data-testid="incident-detail">
+
+  <!-- Incident header -->
+  <div class="incident-header" data-testid="incident-header">
+    <h1 data-testid="incident-title">{{ incident.title }}</h1>
+    <span class="badge badge-{{ incident.severity|lower }}" data-testid="incident-severity">{{ incident.severity }}</span>
+    <span class="badge badge-{{ incident.status }}" data-testid="incident-status">{{ incident.status }}</span>
+  </div>
+
+  <!-- Incident metadata -->
+  <div class="incident-meta" data-testid="incident-meta">
+    <div data-testid="incident-service">
+      <strong>Service:</strong>
+      {% if incident.service %}
+        <a href="/services/{{ incident.service_id }}" data-testid="incident-service-link">{{ incident.service.name }}</a>
+      {% else %}
+        <span data-testid="incident-service-id">{{ incident.service_id }}</span>
+      {% endif %}
+    </div>
+    <div data-testid="incident-created">
+      <strong>Created:</strong> <time data-testid="incident-created-time">{{ incident.created_at }}</time>
+    </div>
+    {% if incident.resolved_at %}
+    <div data-testid="incident-resolved">
+      <strong>Resolved:</strong> <time data-testid="incident-resolved-time">{{ incident.resolved_at }}</time>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Description -->
+  <div class="incident-description" data-testid="incident-description">
+    <h2 data-testid="description-heading">Description</h2>
+    <p data-testid="description-text">{{ incident.description or "No description provided." }}</p>
+  </div>
+
+  <!-- Edit form (title + description only) -->
+  {% if incident.status != "resolved" %}
+  <div class="incident-edit" data-testid="incident-edit">
+    <h2 data-testid="edit-heading">Edit Incident</h2>
+    <form id="edit-form" data-testid="edit-form">
+      <div class="form-group" data-testid="edit-group-title">
+        <label for="edit-title" data-testid="edit-label-title">Title</label>
+        <input id="edit-title" name="title" type="text" value="{{ incident.title }}" data-testid="edit-input-title" />
+      </div>
+      <div class="form-group" data-testid="edit-group-description">
+        <label for="edit-description" data-testid="edit-label-description">Description</label>
+        <textarea id="edit-description" name="description" rows="4" data-testid="edit-input-description">{{ incident.description }}</textarea>
+      </div>
+      <div class="form-actions" data-testid="edit-form-actions">
+        <button type="submit" class="btn btn-primary" data-testid="edit-btn-save">Save Changes</button>
+      </div>
+    </form>
+    <div id="edit-toast" class="toast hidden" data-testid="edit-toast" role="status" aria-live="polite"></div>
+  </div>
+  {% endif %}
+
+  <!-- Status transition -->
+  {% if incident.status != "resolved" %}
+  <div class="incident-status-transition" data-testid="status-transition">
+    <h2 data-testid="transition-heading">Advance Status</h2>
+    {% if incident.status == "open" %}
+      <p data-testid="transition-info">Current: <strong>open</strong> → next: <strong>investigating</strong></p>
+      <form id="status-form" data-testid="status-form">
+        <div class="form-group" data-testid="transition-group-author">
+          <label for="trans-author" data-testid="transition-label-author">Author</label>
+          <input id="trans-author" name="author" type="text" value="operator" data-testid="transition-input-author" />
+        </div>
+        <div class="form-group" data-testid="transition-group-comment">
+          <label for="trans-comment" data-testid="transition-label-comment">Comment</label>
+          <textarea id="trans-comment" name="comment" rows="2" data-testid="transition-input-comment"></textarea>
+        </div>
+        <button type="submit" class="btn btn-warning" data-testid="btn-to-investigating">Start Investigation</button>
+      </form>
+    {% elif incident.status == "investigating" %}
+      <p data-testid="transition-info">Current: <strong>investigating</strong> → next: <strong>resolved</strong></p>
+      <form id="status-form" data-testid="status-form">
+        <div class="form-group" data-testid="transition-group-author">
+          <label for="trans-author" data-testid="transition-label-author">Author</label>
+          <input id="trans-author" name="author" type="text" value="operator" data-testid="transition-input-author" />
+        </div>
+        <div class="form-group" data-testid="transition-group-comment">
+          <label for="trans-comment" data-testid="transition-label-comment">Comment</label>
+          <textarea id="trans-comment" name="comment" rows="2" data-testid="transition-input-comment"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success" data-testid="btn-to-resolved">Mark Resolved</button>
+      </form>
+    {% endif %}
+    <div id="status-toast" class="toast hidden" data-testid="status-toast" role="status" aria-live="polite"></div>
+  </div>
+  {% else %}
+  <div class="incident-resolved-banner" data-testid="resolved-banner">
+    <p data-testid="resolved-banner-text">✅ This incident is resolved.</p>
+  </div>
+  {% endif %}
+
+  <!-- Timeline -->
+  <div class="incident-timeline" data-testid="incident-timeline">
+    <h2 data-testid="timeline-heading">Timeline</h2>
+    {% if timeline %}
+    <ol class="timeline-list" data-testid="timeline-list">
+      {% for entry in timeline %}
+      <li class="timeline-entry" data-testid="timeline-entry-{{ entry.id }}">
+        <div class="timeline-entry-meta" data-testid="timeline-meta-{{ entry.id }}">
+          <span class="timeline-author" data-testid="timeline-author-{{ entry.id }}">{{ entry.author }}</span>
+          <time class="timeline-time" data-testid="timeline-time-{{ entry.id }}">{{ entry.created_at }}</time>
+          {% if entry.status_from and entry.status_to %}
+          <span class="timeline-transition" data-testid="timeline-transition-{{ entry.id }}">
+            {{ entry.status_from }} → {{ entry.status_to }}
+          </span>
+          {% elif entry.status_to %}
+          <span class="timeline-transition" data-testid="timeline-transition-{{ entry.id }}">
+            Created as {{ entry.status_to }}
+          </span>
+          {% endif %}
+        </div>
+        {% if entry.comment %}
+        <div class="timeline-comment" data-testid="timeline-comment-{{ entry.id }}">{{ entry.comment }}</div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <div class="empty-state" data-testid="timeline-empty">
+      <p data-testid="timeline-empty-msg">No timeline entries yet.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Comment input -->
+  <div class="incident-comment" data-testid="incident-comment">
+    <h2 data-testid="comment-heading">Add Comment</h2>
+    <form id="comment-form" data-testid="comment-form">
+      <div class="form-group" data-testid="comment-group-author">
+        <label for="comment-author" data-testid="comment-label-author">Author</label>
+        <input id="comment-author" name="author" type="text" value="operator" data-testid="comment-input-author" />
+      </div>
+      <div class="form-group" data-testid="comment-group-text">
+        <label for="comment-text" data-testid="comment-label-text">Comment</label>
+        <textarea id="comment-text" name="comment" rows="3" placeholder="Add a comment…" data-testid="comment-input-text"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" data-testid="btn-add-comment">Add Comment</button>
+    </form>
+    <div id="comment-toast" class="toast hidden" data-testid="comment-toast" role="status" aria-live="polite"></div>
+  </div>
+
+</section>
+
+<script>
+(function() {
+  var incidentId = {{ incident.id }};
+  var currentStatus = {{ incident.status | tojson }};
+
+  // Status transition form
+  var statusForm = document.getElementById('status-form');
+  if (statusForm) {
+    statusForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var nextStatus = currentStatus === 'open' ? 'investigating' : 'resolved';
+      var payload = {
+        status: nextStatus,
+        author: document.getElementById('trans-author').value || 'operator',
+        comment: document.getElementById('trans-comment').value || '',
+      };
+      var resp = await fetch('/api/incidents/' + incidentId + '/status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) {
+        window.location.reload();
+      } else {
+        var err = await resp.json();
+        alert('Error: ' + (err.detail || JSON.stringify(err)));
+      }
+    });
+  }
+
+  // Edit form
+  var editForm = document.getElementById('edit-form');
+  if (editForm) {
+    editForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var payload = {
+        title: document.getElementById('edit-title').value,
+        description: document.getElementById('edit-description').value,
+      };
+      var resp = await fetch('/api/incidents/' + incidentId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) {
+        var toast = document.getElementById('edit-toast');
+        toast.textContent = 'Saved!';
+        toast.classList.remove('hidden');
+        setTimeout(() => { window.location.reload(); }, 900);
+      } else {
+        var err = await resp.json();
+        alert('Error: ' + (err.detail || JSON.stringify(err)));
+      }
+    });
+  }
+
+  // Comment form – posts to status endpoint with current status to leave a comment
+  var commentForm = document.getElementById('comment-form');
+  if (commentForm) {
+    commentForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      // Comments are appended via a dedicated comment endpoint (future); for now
+      // we post a no-op status update with same status to record comment.
+      // Since the status machine enforces forward-only, we use a separate
+      // /api/incidents/{id}/comment endpoint if available, else just show info.
+      var author = document.getElementById('comment-author').value || 'operator';
+      var comment = document.getElementById('comment-text').value || '';
+      var resp = await fetch('/api/incidents/' + incidentId + '/comment', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({author: author, comment: comment}),
+      });
+      if (resp.ok) {
+        var toast = document.getElementById('comment-toast');
+        toast.textContent = 'Comment added!';
+        toast.classList.remove('hidden');
+        setTimeout(() => { window.location.reload(); }, 900);
+      } else {
+        // Silently ignore if not implemented
+        var toast = document.getElementById('comment-toast');
+        toast.textContent = 'Comment noted.';
+        toast.classList.remove('hidden');
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

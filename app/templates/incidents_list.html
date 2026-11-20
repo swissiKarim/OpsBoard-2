@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Incidents – OpsBoard{% endblock %}
+{% block page_title %}Incidents{% endblock %}
+{% block content %}
+<section data-testid="incidents-section">
+  <div class="section-header" data-testid="incidents-header">
+    <h1 data-testid="incidents-title">Incidents</h1>
+    <button data-testid="new-incident-btn" class="btn btn-primary" onclick="document.getElementById('new-incident-modal').classList.add('open')">
+      + New Incident
+    </button>
+  </div>
+
+  {% if incidents %}
+  <table class="table" data-testid="incidents-table">
+    <thead>
+      <tr>
+        <th data-testid="col-id">ID</th>
+        <th data-testid="col-title">Title</th>
+        <th data-testid="col-severity">Severity</th>
+        <th data-testid="col-status">Status</th>
+        <th data-testid="col-service">Service</th>
+        <th data-testid="col-created">Created</th>
+        <th data-testid="col-actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody data-testid="incidents-tbody">
+      {% for inc in incidents %}
+      <tr data-testid="incident-row-{{ inc.id }}">
+        <td data-testid="incident-id-{{ inc.id }}">#{{ inc.id }}</td>
+        <td data-testid="incident-title-{{ inc.id }}">
+          <a href="/incidents/{{ inc.id }}" data-testid="incident-link-{{ inc.id }}">{{ inc.title }}</a>
+        </td>
+        <td data-testid="incident-severity-{{ inc.id }}">
+          <span class="badge badge-{{ inc.severity|lower }}" data-testid="badge-severity-{{ inc.id }}">{{ inc.severity }}</span>
+        </td>
+        <td data-testid="incident-status-{{ inc.id }}">
+          <span class="badge badge-{{ inc.status }}" data-testid="badge-status-{{ inc.id }}">{{ inc.status }}</span>
+        </td>
+        <td data-testid="incident-service-{{ inc.id }}">{{ inc.service.name if inc.service else inc.service_id }}</td>
+        <td data-testid="incident-created-{{ inc.id }}">{{ inc.created_at }}</td>
+        <td data-testid="incident-actions-{{ inc.id }}">
+          <a href="/incidents/{{ inc.id }}" class="btn btn-sm" data-testid="view-incident-{{ inc.id }}">View</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state" data-testid="incidents-empty">
+    <p data-testid="incidents-empty-msg">No incidents yet. Create the first one!</p>
+  </div>
+  {% endif %}
+</section>
+
+<!-- New Incident Modal -->
+<div id="new-incident-modal" class="modal-overlay" data-testid="new-incident-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal" data-testid="modal-content">
+    <div class="modal-header" data-testid="modal-header">
+      <h2 id="modal-title" data-testid="modal-title">New Incident</h2>
+      <button class="modal-close" data-testid="modal-close" aria-label="Close modal" onclick="document.getElementById('new-incident-modal').classList.remove('open')">✕</button>
+    </div>
+    <form id="new-incident-form" data-testid="new-incident-form">
+      <div class="form-group" data-testid="form-group-title">
+        <label for="inc-title" data-testid="label-title">Title</label>
+        <input id="inc-title" name="title" type="text" required data-testid="input-title" />
+      </div>
+      <div class="form-group" data-testid="form-group-service">
+        <label for="inc-service" data-testid="label-service">Service</label>
+        <select id="inc-service" name="service_id" required data-testid="select-service">
+          {% for svc in services %}
+          <option value="{{ svc.id }}" data-testid="option-service-{{ svc.id }}">{{ svc.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" data-testid="form-group-severity">
+        <label for="inc-severity" data-testid="label-severity">Severity</label>
+        <select id="inc-severity" name="severity" required data-testid="select-severity">
+          <option value="SEV1" data-testid="option-sev1">SEV1</option>
+          <option value="SEV2" data-testid="option-sev2">SEV2</option>
+          <option value="SEV3" data-testid="option-sev3">SEV3</option>
+        </select>
+      </div>
+      <div class="form-group" data-testid="form-group-description">
+        <label for="inc-description" data-testid="label-description">Description</label>
+        <textarea id="inc-description" name="description" rows="4" data-testid="input-description"></textarea>
+      </div>
+      <div class="form-actions" data-testid="form-actions">
+        <button type="button" class="btn" data-testid="btn-cancel" onclick="document.getElementById('new-incident-modal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-testid="btn-submit">Create Incident</button>
+      </div>
+    </form>
+    <div id="toast" class="toast hidden" data-testid="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Close modal on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('new-incident-modal').classList.remove('open');
+    }
+  });
+
+  // Form submit via fetch
+  document.getElementById('new-incident-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+      title: form.title.value,
+      service_id: parseInt(form.service_id.value),
+      severity: form.severity.value,
+      description: form.description.value,
+    };
+    try {
+      const resp = await fetch('/api/incidents', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const toast = document.getElementById('toast');
+        toast.textContent = 'Incident #' + data.id + ' created!';
+        toast.classList.remove('hidden');
+        setTimeout(() => { window.location.reload(); }, 1200);
+      } else {
+        const err = await resp.json();
+        alert('Error: ' + (err.detail || JSON.stringify(err)));
+      }
+    } catch(ex) {
+      alert('Network error: ' + ex.message);
+    }
+  });
+})();
+</script>
+{% endblock %}
