@@ -1,7 +1,7 @@
 # scenario-id: US-02/SC-1
 """SC-1: ORM models are created and DB migrates on startup.
 Verifies that service, incident and timeline_entry tables exist by calling
-GET /api/services/db-tables which queries sqlite_master directly.
+GET /api/db-tables which queries sqlite_master directly.
 then={tables contains "service"; tables contains "incident"; tables contains "timeline_entry"}
 """
 
@@ -19,7 +19,7 @@ last_error = ""
 # Retry up to 3 times with 1s delay to handle startup timing
 for attempt in range(3):
     try:
-        resp = httpx.get(f"{base_url}/api/services/db-tables", timeout=15)
+        resp = httpx.get(f"{base_url}/api/db-tables", timeout=15)
         if resp.status_code == 200:
             data = resp.json()
             raw = data.get("tables", "")

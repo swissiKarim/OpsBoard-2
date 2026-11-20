@@ -42,6 +42,27 @@ def health():
 
 
 # ---------------------------------------------------------------------------
+# DB introspection endpoint (used by SC-1 migration check)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/db-tables", tags=["meta"])
+def db_tables():
+    """Return comma-separated table names from sqlite_master."""
+    from sqlalchemy import text
+
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        rows = db.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+        ).fetchall()
+        names = [r[0] for r in rows]
+        return {"tables": ",".join(names)}
+    finally:
+        db.close()
+
+
+# ---------------------------------------------------------------------------
 # Root redirect
 # ---------------------------------------------------------------------------
 
