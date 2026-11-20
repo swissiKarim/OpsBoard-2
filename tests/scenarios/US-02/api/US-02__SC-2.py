@@ -1,5 +1,7 @@
 # scenario-id: US-02/SC-2
-"""SC-2: compute_service_status returns outage for open SEV1 incident."""
+"""SC-2: compute_service_status returns outage for open SEV1 incident.
+then={result equals "outage"}
+"""
 
 import json
 import os
@@ -35,4 +37,4 @@ except Exception as exc:
     print(json.dumps({"error": str(exc), "result": "error"}))
     sys.exit(1)
 
-print(json.dumps({"status": status_resp.status_code, "body": {"result": result}}))
+print(json.dumps({"result": result}))

@@ -1,5 +1,7 @@
 # scenario-id: US-02/SC-3
-"""SC-3: compute_service_status returns degraded for open SEV2/SEV3 only."""
+"""SC-3: compute_service_status returns degraded for open SEV2/SEV3 only.
+then={result equals "degraded"}
+"""
 
 import json
 import os
@@ -35,4 +37,4 @@ except Exception as exc:
     print(json.dumps({"error": str(exc), "result": "error"}))
     sys.exit(1)
 
-print(json.dumps({"status": status_resp.status_code, "body": {"result": result}}))
+print(json.dumps({"result": result}))

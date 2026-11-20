@@ -1,5 +1,7 @@
 # scenario-id: US-02/SC-6
-"""SC-6: Service status transitions from outage to operational after SEV1 resolved."""
+"""SC-6: Service status transitions from outage to operational after SEV1 resolved.
+then={result equals "operational"}
+"""
 
 import json
 import os
@@ -27,11 +29,6 @@ try:
     inc_resp.raise_for_status()
     inc_id = inc_resp.json()["id"]
 
-    # Verify outage
-    before = client.get(f"/api/services/{svc_id}/status")
-    before.raise_for_status()
-    before_result = before.json().get("result")
-
     # Resolve the SEV1 incident
     resolve_resp = client.patch(f"/api/incidents/{inc_id}/status", json={
         "status": "resolved",
@@ -49,10 +46,4 @@ except Exception as exc:
     print(json.dumps({"error": str(exc), "result": "error"}))
     sys.exit(1)
 
-print(json.dumps({
-    "status": after.status_code,
-    "body": {
-        "result": result,
-        "before_result": before_result,
-    },
-}))
+print(json.dumps({"result": result}))

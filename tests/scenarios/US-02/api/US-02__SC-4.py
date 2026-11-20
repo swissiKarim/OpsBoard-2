@@ -1,5 +1,7 @@
 # scenario-id: US-02/SC-4
-"""SC-4: compute_service_status returns operational when no open incidents."""
+"""SC-4: compute_service_status returns operational when no open incidents.
+then={result equals "operational"}
+"""
 
 import json
 import os
@@ -26,4 +28,4 @@ except Exception as exc:
     print(json.dumps({"error": str(exc), "result": "error"}))
     sys.exit(1)
 
-print(json.dumps({"status": status_resp.status_code, "body": {"result": result}}))
+print(json.dumps({"result": result}))
