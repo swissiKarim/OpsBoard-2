@@ -61,18 +61,6 @@ def db_tables():
 
 
 # ---------------------------------------------------------------------------
-# Root redirect
-# ---------------------------------------------------------------------------
-
-from fastapi.responses import RedirectResponse  # noqa: E402
-
-
-@app.get("/", include_in_schema=False)
-def root():
-    return RedirectResponse(url="/dashboard")
-
-
-# ---------------------------------------------------------------------------
 # Routers (imported after app is created to avoid circular imports)
 # ---------------------------------------------------------------------------
 
