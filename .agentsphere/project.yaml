@@ -1,6 +1,5 @@
 schemaVersion: 4
-rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, and
-  pytest suite
+rationale: FastAPI OpsBoard with SQLite/SQLAlchemy, Jinja2 UI, REST API, service CRUD
 components:
 - name: app
   path: .
@@ -30,6 +29,12 @@ definition_of_done:
 - python -m pytest passes without errors
 - GET /health returns 200 with {"status":"ok"}
 - compute_service_status() correctly derives outage/degraded/operational
+- GET /services renders Jinja2 list with data-testid rows and status badges
+- POST /services creates service and redirects to /services
+- GET /services/{id} renders service detail page
+- PUT /api/services/{id} updates name, description and team
+- DELETE /api/services/{id} removes service and related incidents
+- GET /api/services and POST /api/services return JSON
 network:
   needs: []
 services:
