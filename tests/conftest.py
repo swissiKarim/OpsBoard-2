@@ -1,12 +1,34 @@
 """Shared pytest fixtures."""
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import subprocess
+import sys
 
-from app.database import Base, get_db
-from app.main import app
+
+def _ensure_deps():
+    try:
+        import fastapi  # noqa: F401
+        import httpx  # noqa: F401
+        import sqlalchemy  # noqa: F401
+    except ImportError:
+        subprocess.check_call(
+            [
+                sys.executable, "-m", "pip", "install",
+                "fastapi", "uvicorn[standard]", "sqlalchemy",
+                "jinja2", "python-multipart", "httpx",
+                "-q", "--break-system-packages",
+            ]
+        )
+
+
+_ensure_deps()
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
+
+from app.database import Base, get_db  # noqa: E402
+from app.main import app  # noqa: E402
 
 
 @pytest.fixture(scope="session")
