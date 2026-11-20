@@ -23,7 +23,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q --junitxml=.agentsphere/reports/junit.xml"
 
 [tool.ruff]
 line-length = 100

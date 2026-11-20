@@ -11,7 +11,7 @@ components:
   - ruff check .
   - pytest
   - pip install -r requirements.txt -q --break-system-packages
-  - python -m pytest -q --tb=short
+  - python -m pytest -q --tb=short --junitxml=.agentsphere/reports/junit.xml
   artifacts_ignore:
   - .venv/
   - __pycache__/
