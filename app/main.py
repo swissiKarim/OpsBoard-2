@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from app.database import init_db
 
@@ -27,7 +26,6 @@ app = FastAPI(
 # Static files & templates (paths created at scaffold time)
 # ---------------------------------------------------------------------------
 
-templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 

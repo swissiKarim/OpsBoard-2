@@ -1,6 +1,6 @@
 schemaVersion: 4
-rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, and
-  pytest suite
+rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, incident
+  CRUD/status-machine/timeline, and pytest suite
 components:
 - name: app
   path: .
@@ -30,6 +30,10 @@ definition_of_done:
 - python -m pytest passes without errors
 - GET /health returns 200 with {"status":"ok"}
 - compute_service_status() correctly derives outage/degraded/operational
+- POST /api/incidents creates incident with open status and recalculates service status
+- POST /api/incidents/{id}/status enforces open→investigating→resolved only
+- PUT /api/incidents/{id} updates title/description but not status/severity
+- GET /incidents/{id} renders timeline and comment input with data-testid attributes
 network:
   needs: []
 services:
