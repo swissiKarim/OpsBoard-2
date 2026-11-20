@@ -18,9 +18,8 @@ try:
     data = resp.json()
     table_list = data.get("tables", [])
 except Exception as exc:
-    print(json.dumps({"error": str(exc), "tables": ""}))
+    print(json.dumps({"error": str(exc), "tables": []}))
     sys.exit(1)
 
-# Output tables as a space-separated string so platform `contains` works as substring check
-tables_str = " ".join(table_list)
-print(json.dumps({"tables": tables_str}))
+# Output tables as array at root — platform `contains` checks array membership
+print(json.dumps({"tables": table_list}))
