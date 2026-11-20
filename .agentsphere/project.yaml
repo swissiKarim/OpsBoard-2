@@ -10,7 +10,7 @@ components:
   verify:
   - ruff check .
   - pytest
-  - pip install fastapi uvicorn[standard] sqlalchemy jinja2 python-multipart pytest
+  - pip install fastapi "uvicorn[standard]" sqlalchemy jinja2 python-multipart pytest
     httpx ruff -q --break-system-packages
   - python -m pytest -q --tb=short
   artifacts_ignore:
