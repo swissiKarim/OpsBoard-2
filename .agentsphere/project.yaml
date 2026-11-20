@@ -1,7 +1,7 @@
 schemaVersion: 4
 rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, incident
-  CRUD/status-machine/timeline, dashboard KPIs with inline-SVG bar chart, and pytest
-  suite
+  CRUD/status-machine/timeline, dashboard KPIs with inline-SVG bar chart, seed command
+  for demo data, and pytest suite
 components:
 - name: app
   path: .
@@ -13,6 +13,7 @@ components:
   - pytest
   - pip install -r requirements.txt -q --break-system-packages
   - python -m pytest -q --tb=short --junitxml=.agentsphere/reports/junit.xml
+  - python -m app.seed
   artifacts_ignore:
   - .venv/
   - __pycache__/
@@ -39,11 +40,16 @@ definition_of_done:
 - Dashboard lists five most recently updated incidents
 - SVG bar chart generated server-side by app/svg_builder.py without external libraries
 - All KPI tile and chart container elements have data-testid attributes
+- python -m app.seed creates exactly 6 services and 25 incidents
+- Seed command is idempotent (clears and re-seeds on second run)
+- GET /api/services returns {total, items} with total equal to service count
+- GET /api/incidents returns {total, items} with total equal to incident count
 network:
   needs: []
 services:
 - name: web
-  start: uvicorn app.main:app --host 0.0.0.0 --port 8000
+  start: bash -c "python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port
+    8000"
   port: 8000
   health:
     http: /health

@@ -95,9 +95,15 @@ def incident_detail_page(incident_id: int, request: Request, db: Session = Depen
 # ---------------------------------------------------------------------------
 
 
-@router.get("/api/incidents", response_model=list[IncidentResponse])
+class IncidentListResponse(BaseModel):
+    total: int
+    items: list[IncidentResponse]
+
+
+@router.get("/api/incidents", response_model=IncidentListResponse)
 def list_incidents(db: Session = Depends(get_db)):
-    return db.query(models.Incident).all()
+    items = db.query(models.Incident).all()
+    return IncidentListResponse(total=len(items), items=items)
 
 
 @router.get("/api/incidents/{incident_id}", response_model=IncidentResponse)
