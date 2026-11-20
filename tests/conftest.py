@@ -5,11 +5,16 @@ import sys
 
 
 def _ensure_deps():
-    try:
-        import fastapi  # noqa: F401
-        import httpx  # noqa: F401
-        import sqlalchemy  # noqa: F401
-    except ImportError:
+    """Install missing dependencies and re-exec if needed."""
+    missing = False
+    for pkg in ("fastapi", "httpx", "sqlalchemy"):
+        try:
+            __import__(pkg)
+        except ImportError:
+            missing = True
+            break
+
+    if missing:
         subprocess.check_call(
             [
                 sys.executable, "-m", "pip", "install",
@@ -18,6 +23,9 @@ def _ensure_deps():
                 "-q", "--break-system-packages",
             ]
         )
+        # Re-exec pytest so the newly installed packages are importable
+        import os
+        os.execv(sys.executable, [sys.executable, "-m", "pytest"] + sys.argv[1:])
 
 
 _ensure_deps()
