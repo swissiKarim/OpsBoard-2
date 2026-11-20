@@ -55,7 +55,12 @@ def db_tables(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response_model=list[ServiceResponse])
+class ServiceListResponse(BaseModel):
+    total: int
+    items: list[ServiceResponse]
+
+
+@router.get("/", response_model=ServiceListResponse)
 def list_services(db: Session = Depends(get_db)):
     services = db.query(models.Service).all()
     result = []
@@ -63,7 +68,7 @@ def list_services(db: Session = Depends(get_db)):
         status = compute_service_status(svc.id, db)
         svc.computed_status = status
         result.append(ServiceResponse.model_validate(svc))
-    return result
+    return ServiceListResponse(total=len(result), items=result)
 
 
 @router.get("/{service_id}", response_model=ServiceResponse)
