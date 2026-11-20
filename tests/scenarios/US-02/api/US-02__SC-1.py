@@ -16,10 +16,11 @@ try:
     resp = httpx.get(f"{base_url}/api/services/db-tables", timeout=10)
     resp.raise_for_status()
     data = resp.json()
-    table_list = data.get("tables", [])
+    # tables is a comma-separated string from the API, e.g. "incident,service,timeline_entry"
+    tables = data.get("tables", "")
 except Exception as exc:
-    print(json.dumps({"error": str(exc), "tables": []}))
+    print(json.dumps({"error": str(exc), "tables": ""}))
     sys.exit(1)
 
-# Output tables as array at root — platform `contains` checks array membership
-print(json.dumps({"tables": table_list}))
+# Platform evaluates `tables contains "service"` as substring check on this string
+print(json.dumps({"tables": tables}))

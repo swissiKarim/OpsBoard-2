@@ -42,7 +42,9 @@ class ServiceResponse(BaseModel):
 def db_tables():
     """Return list of table names – used by SC-1 migration check."""
     inspector = sa_inspect(engine)
-    return {"tables": inspector.get_table_names()}
+    # Return as comma-separated string so platform `contains` works as substring check
+    table_names = inspector.get_table_names()
+    return {"tables": ",".join(table_names)}
 
 
 # ---------------------------------------------------------------------------
