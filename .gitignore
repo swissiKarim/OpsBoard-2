@@ -11,5 +11,11 @@ junit.xml
 *.db
 *.db-shm
 *.db-wal
+*.db-wal
 *.sqlite
 *.sqlite3
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

@@ -1,5 +1,6 @@
 schemaVersion: 4
-rationale: 'greenfield: derived from requirement (deterministic)'
+rationale: FastAPI skeleton with SQLite/SQLAlchemy, Jinja2 templates, health endpoint
+  and pytest suite
 components:
 - name: app
   path: .
@@ -9,7 +10,13 @@ components:
   verify:
   - ruff check .
   - pytest
-  artifacts_ignore: []
+  - python -m pytest -q --tb=short
+  artifacts_ignore:
+  - .venv/
+  - __pycache__/
+  - '*.db'
+  - '*.db-wal'
+  - '*.db-shm'
   verifySlots:
     lint:
       command: ruff check .
@@ -18,8 +25,9 @@ components:
       command: pytest
       source: platform_default
 definition_of_done:
-- ruff check . und pytest laufen ohne Fehler
-- GET /health antwortet auf Port 8000 (Dienst web)
+- ruff check . passes without errors
+- pytest passes without errors
+- GET /health returns 200 with {"status":"ok"}
 network:
   needs: []
 services:
