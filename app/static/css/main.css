@@ -1,0 +1,114 @@
+/* OpsBoard – main stylesheet */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f4f5f7;
+  --color-border: #e1e4e8;
+  --color-text: #0f1117;
+  --color-text-muted: #6b7280;
+  --color-primary: #4f46e5;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --sidebar-width: 220px;
+  --radius: 6px;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-bg: #0f1117;
+  --color-surface: #1a1d27;
+  --color-border: #2d3148;
+  --color-text: #e5e7eb;
+  --color-text-muted: #9ca3af;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--color-bg);
+  color: var(--color-text);
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 20px 16px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-nav { list-style: none; padding: 8px 0; }
+.sidebar-nav a {
+  display: block;
+  padding: 10px 16px;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius);
+  margin: 2px 8px;
+  transition: background 0.15s;
+}
+.sidebar-nav a:hover, .sidebar-nav a:focus {
+  background: var(--color-border);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.layout {
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.page-title { font-weight: 600; font-size: 1rem; }
+
+#theme-toggle {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.content {
+  padding: 32px 24px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1023px) {
+  .sidebar { transform: translateX(-100%); }
+  .layout { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

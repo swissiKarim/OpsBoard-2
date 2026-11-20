@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}OpsBoard{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/main.css" />
+</head>
+<body>
+  <nav class="sidebar" data-testid="sidebar">
+    <div class="sidebar-logo" data-testid="sidebar-logo">OpsBoard</div>
+    <ul class="sidebar-nav">
+      <li><a href="/dashboard" data-testid="nav-dashboard">Dashboard</a></li>
+      <li><a href="/services" data-testid="nav-services">Services</a></li>
+      <li><a href="/incidents" data-testid="nav-incidents">Incidents</a></li>
+    </ul>
+  </nav>
+  <div class="layout">
+    <header class="topbar" data-testid="topbar">
+      <span class="page-title" data-testid="page-title">{% block page_title %}OpsBoard{% endblock %}</span>
+      <button id="theme-toggle" data-testid="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </header>
+    <main class="content" data-testid="main-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
