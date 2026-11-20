@@ -23,8 +23,7 @@ resolved_count = sum(1 for i in items if i.get("status") == "resolved")
 all_statuses_covered = min(open_count, investigating_count, resolved_count)
 
 print(json.dumps({
-    "status": resp.status_code,
-    "headers": dict(resp.headers),
+    "status_code": resp.status_code,
     "body": {
         "total": all_statuses_covered,
         "open": open_count,

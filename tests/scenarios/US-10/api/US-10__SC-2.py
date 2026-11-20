@@ -13,7 +13,6 @@ base_url = os.environ.get("ASB_SVC_WEB_URL", os.environ.get("ASB_API_BASE", "htt
 resp = httpx.get(f"{base_url}/api/services/", timeout=15)
 
 print(json.dumps({
-    "status": resp.status_code,
-    "headers": dict(resp.headers),
+    "status_code": resp.status_code,
     "body": resp.json(),
 }))
