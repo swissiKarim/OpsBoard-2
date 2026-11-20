@@ -1,0 +1,33 @@
+schemaVersion: 4
+rationale: 'greenfield: derived from requirement (deterministic)'
+components:
+- name: app
+  path: .
+  toolchain:
+    image: agentsphere/sandbox-polyglot
+    kind: python
+  verify:
+  - ruff check .
+  - pytest
+  artifacts_ignore: []
+  verifySlots:
+    lint:
+      command: ruff check .
+      source: platform_default
+    test:
+      command: pytest
+      source: platform_default
+definition_of_done:
+- ruff check . und pytest laufen ohne Fehler
+- GET /health antwortet auf Port 8000 (Dienst web)
+network:
+  needs: []
+services:
+- name: web
+  start: uvicorn app.main:app --host 0.0.0.0 --port 8000
+  port: 8000
+  health:
+    http: /health
+    timeoutSec: 30
+  preview:
+    path: /
