@@ -2,12 +2,12 @@
 """SC-6: GET /api/services and POST /api/services return JSON."""
 import json
 import os
-import requests
+
+import httpx
 
 base = os.environ.get("ASB_SVC_WEB_URL", "http://localhost:8000")
 
-# GET /api/services
-get_resp = requests.get(f"{base}/api/services", timeout=10)
+get_resp = httpx.get(f"{base}/api/services", timeout=10)
 
 print(json.dumps({
     "status_code": get_resp.status_code,
