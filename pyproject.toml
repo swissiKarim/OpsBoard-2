@@ -28,6 +28,7 @@ addopts = "-q --junitxml=.agentsphere/reports/junit.xml"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = ["tests/scenarios"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

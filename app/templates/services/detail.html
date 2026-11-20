@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ service.name }} – OpsBoard{% endblock %}
+{% block page_title %}Service Detail{% endblock %}
+{% block content %}
+<section data-testid="service-detail">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <div>
+      <h1 style="font-size:1.5rem;font-weight:700;" data-testid="service-name">{{ service.name }}</h1>
+      <p style="color:var(--color-text-muted);margin-top:4px;" data-testid="service-team">Team: {{ service.team }}</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      {% if service.computed_status == "operational" %}
+        <span class="badge badge-operational" data-testid="service-status-badge">✓ Operational</span>
+      {% elif service.computed_status == "degraded" %}
+        <span class="badge badge-degraded" data-testid="service-status-badge">⚠ Degraded</span>
+      {% else %}
+        <span class="badge badge-outage" data-testid="service-status-badge">✗ Outage</span>
+      {% endif %}
+      <a href="/services/{{ service.id }}/edit" data-testid="btn-edit-service"
+         style="background:var(--color-primary);color:#fff;padding:8px 16px;border-radius:var(--radius);text-decoration:none;font-size:0.875rem;">
+        Edit
+      </a>
+    </div>
+  </div>
+
+  {% if service.description %}
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);padding:16px;margin-bottom:24px;">
+    <p data-testid="service-description">{{ service.description }}</p>
+  </div>
+  {% endif %}
+
+  <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:16px;">Incidents</h2>
+  {% if incidents %}
+  <table style="width:100%;border-collapse:collapse;" data-testid="service-incidents-table">
+    <thead>
+      <tr style="border-bottom:2px solid var(--color-border);text-align:left;">
+        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Title</th>
+        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Severity</th>
+        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inc in incidents %}
+      <tr data-testid="incident-row-{{ inc.id }}" style="border-bottom:1px solid var(--color-border);">
+        <td style="padding:12px;">
+          <a href="/api/incidents/{{ inc.id }}" data-testid="incident-link-{{ inc.id }}"
+             style="color:var(--color-primary);text-decoration:none;">{{ inc.title }}</a>
+        </td>
+        <td style="padding:12px;" data-testid="incident-severity-{{ inc.id }}">{{ inc.severity }}</td>
+        <td style="padding:12px;" data-testid="incident-status-{{ inc.id }}">{{ inc.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div data-testid="incidents-empty" style="color:var(--color-text-muted);padding:32px 0;text-align:center;">
+    No incidents for this service.
+  </div>
+  {% endif %}
+
+  <div style="margin-top:24px;">
+    <a href="/services" data-testid="btn-back-services"
+       style="color:var(--color-text-muted);font-size:0.875rem;text-decoration:none;">← Back to Services</a>
+  </div>
+</section>
+{% endblock %}
