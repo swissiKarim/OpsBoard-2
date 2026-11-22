@@ -45,7 +45,8 @@
   <div class="recent-incidents" data-testid="recently-updated-incidents">
     <h2 class="section-title" data-testid="recently-updated-title">Recently Updated</h2>
     {% if recent_incidents %}
-    <table class="incidents-table" data-testid="recent-incidents-table">
+    <div class="table-responsive">
+    <table class="incidents-table table-card" data-testid="recent-incidents-table">
       <thead>
         <tr>
           <th data-testid="col-title">Title</th>
@@ -58,17 +59,25 @@
       <tbody>
         {% for inc in recent_incidents %}
         <tr data-testid="recent-incident-row-{{ inc.id }}">
-          <td><a href="/incidents/{{ inc.id }}" data-testid="recent-incident-link-{{ inc.id }}">{{ inc.title }}</a></td>
-          <td data-testid="recent-incident-service-{{ inc.id }}">{{ inc.service.name if inc.service else '—' }}</td>
-          <td><span class="badge badge--severity" data-testid="recent-incident-severity-{{ inc.id }}">{{ inc.severity }}</span></td>
-          <td><span class="badge badge--{{ inc.status }}" data-testid="recent-incident-status-{{ inc.id }}">{{ inc.status }}</span></td>
-          <td data-testid="recent-incident-updated-{{ inc.id }}">{{ inc.updated_at.strftime('%Y-%m-%d %H:%M') if inc.updated_at else '—' }}</td>
+          <td data-label="Title"><a href="/incidents/{{ inc.id }}" data-testid="recent-incident-link-{{ inc.id }}">{{ inc.title }}</a></td>
+          <td data-label="Service" data-testid="recent-incident-service-{{ inc.id }}">{{ inc.service.name if inc.service else '—' }}</td>
+          <td data-label="Severity"><span class="badge badge-{{ inc.severity|lower }}" data-testid="recent-incident-severity-{{ inc.id }}">{{ inc.severity }}</span></td>
+          <td data-label="Status"><span class="badge badge-{{ inc.status }}" data-testid="recent-incident-status-{{ inc.id }}">{{ inc.status }}</span></td>
+          <td data-label="Updated" data-testid="recent-incident-updated-{{ inc.id }}">{{ inc.updated_at.strftime('%Y-%m-%d %H:%M') if inc.updated_at else '—' }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
     {% else %}
-    <p class="empty-state" data-testid="no-recent-incidents">No incidents yet. All systems operational.</p>
+    <div class="empty-state" data-testid="no-recent-incidents">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2"/>
+        <path d="M24 14v14M24 34v2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <p>No incidents yet.</p>
+      <p class="empty-state-hint">All systems operational. Create an incident to get started.</p>
+    </div>
     {% endif %}
   </div>
 
