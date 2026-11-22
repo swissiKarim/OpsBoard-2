@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{% if service %}Edit Service{% else %}New Service{% endif %} – OpsBoard{% endblock %}
+{% block page_title %}{% if service %}Edit Service{% else %}New Service{% endif %}{% endblock %}
+{% block content %}
+<section data-testid="service-form-section" style="max-width:600px;">
+  <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:24px;" data-testid="form-heading">
+    {% if service %}Edit Service{% else %}New Service{% endif %}
+  </h1>
+
+  <form method="post" action="{{ action }}" data-testid="service-form"
+        style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:20px;">
+
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label for="name" data-testid="label-name" style="font-size:0.875rem;font-weight:500;">
+        Name <span style="color:var(--color-danger);">*</span>
+      </label>
+      <input
+        id="name"
+        type="text"
+        name="name"
+        data-testid="input-name"
+        required
+        value="{{ service.name if service else '' }}"
+        placeholder="e.g. API Gateway"
+        style="padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-bg);color:var(--color-text);font-size:0.9rem;"
+      />
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label for="description" data-testid="label-description" style="font-size:0.875rem;font-weight:500;">
+        Description
+      </label>
+      <textarea
+        id="description"
+        name="description"
+        data-testid="input-description"
+        rows="4"
+        placeholder="Short description of this service…"
+        style="padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-bg);color:var(--color-text);font-size:0.9rem;resize:vertical;">{{ service.description if service else '' }}</textarea>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label for="team" data-testid="label-team" style="font-size:0.875rem;font-weight:500;">
+        Team
+      </label>
+      <input
+        id="team"
+        type="text"
+        name="team"
+        data-testid="input-team"
+        value="{{ service.team if service else '' }}"
+        placeholder="e.g. Platform Engineering"
+        style="padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-bg);color:var(--color-text);font-size:0.9rem;"
+      />
+    </div>
+
+    {% if service %}
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label data-testid="label-status" style="font-size:0.875rem;font-weight:500;color:var(--color-text-muted);">
+        Status (computed – not editable)
+      </label>
+      <div data-testid="display-computed-status"
+           style="padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-surface);color:var(--color-text-muted);font-size:0.9rem;">
+        {% if service.computed_status == "operational" %}✓ Operational
+        {% elif service.computed_status == "degraded" %}⚠ Degraded
+        {% else %}✗ Outage{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <button type="submit" data-testid="btn-submit-service"
+              style="background:var(--color-primary);color:#fff;padding:10px 24px;border:none;border-radius:var(--radius);font-size:0.9rem;font-weight:600;cursor:pointer;">
+        {% if service %}Save Changes{% else %}Create Service{% endif %}
+      </button>
+      <a href="/services" data-testid="btn-cancel-service"
+         style="padding:10px 24px;border:1px solid var(--color-border);border-radius:var(--radius);color:var(--color-text);text-decoration:none;font-size:0.9rem;">
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

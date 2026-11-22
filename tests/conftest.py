@@ -34,7 +34,9 @@ import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
+from sqlalchemy.pool import StaticPool  # noqa: E402
 
+import app.database as _db_module  # noqa: E402
 from app.database import Base, get_db  # noqa: E402
 from app.main import app  # noqa: E402
 
@@ -44,8 +46,12 @@ def engine():
     eng = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
+        poolclass=StaticPool,  # one shared in-memory DB for all connections
     )
     Base.metadata.create_all(bind=eng)
+    # Patch the module-level engine so lifespan init_db() also uses it
+    _db_module.engine = eng
+    _db_module.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=eng)
     yield eng
     Base.metadata.drop_all(bind=eng)
 
