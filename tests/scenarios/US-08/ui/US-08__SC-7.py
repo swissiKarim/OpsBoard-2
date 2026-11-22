@@ -11,11 +11,18 @@ with page_session() as (page, base_url):
 
     # Fill the form
     page.fill('[data-testid="modal-incident-title"]', "Toast Test Incident")
-    # Service and severity already have default selections
-    page.click('[data-testid="modal-incident-service"]')
-    page.keyboard.press("Escape")
-    page.click('[data-testid="modal-incident-severity"]')
-    page.keyboard.press("Escape")
+
+    # Select first available service option
+    service_sel = page.locator('[data-testid="modal-incident-service"]')
+    options = service_sel.locator('option').all()
+    if options:
+        first_val = options[0].get_attribute('value')
+        if first_val:
+            service_sel.select_option(value=first_val)
+
+    # Select SEV2 severity
+    page.locator('[data-testid="modal-incident-severity"]').select_option(value='SEV2')
+
     page.fill('[data-testid="modal-incident-description"]', "desc")
     page.click('[data-testid="modal-submit-btn"]')
 

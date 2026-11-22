@@ -7,20 +7,33 @@ with page_session() as (page, base_url):
     page.goto(base_url.rstrip("/") + "/incidents")
     page.wait_for_selector('[data-testid="btn-new-incident"]')
     page.click('[data-testid="btn-new-incident"]')
-    page.wait_for_selector('[data-testid="modal-new-incident"].open', timeout=5000)
+    page.wait_for_function(
+        "document.querySelector('[data-testid=\"modal-new-incident\"]').classList.contains('open')",
+        timeout=5000,
+    )
 
-    # Fill the form
+    # Fill the form using fill/select_option
     page.fill('[data-testid="modal-incident-title"]', "Test Incident")
-    # Click service select to pick the first option (already selected by default)
-    page.click('[data-testid="modal-incident-service"]')
-    page.keyboard.press("Escape")  # close dropdown
-    page.click('[data-testid="modal-incident-severity"]')
-    page.keyboard.press("Escape")  # close dropdown
+
+    # Select first available service option
+    service_sel = page.locator('[data-testid="modal-incident-service"]')
+    options = service_sel.locator('option').all()
+    if options:
+        first_val = options[0].get_attribute('value')
+        if first_val:
+            service_sel.select_option(value=first_val)
+
+    # Select SEV2 severity
+    page.locator('[data-testid="modal-incident-severity"]').select_option(value='SEV2')
+
     page.fill('[data-testid="modal-incident-description"]', "Test description")
     page.click('[data-testid="modal-submit-btn"]')
 
     # Wait for modal to close
-    page.wait_for_selector('[data-testid="modal-new-incident"]:not(.open)', timeout=8000)
+    page.wait_for_function(
+        "!document.querySelector('[data-testid=\"modal-new-incident\"]').classList.contains('open')",
+        timeout=8000,
+    )
     modal_visible = page.is_visible('[data-testid="modal-new-incident"].open')
     screenshot(page, "US-08/SC-6")
     print(json.dumps({
