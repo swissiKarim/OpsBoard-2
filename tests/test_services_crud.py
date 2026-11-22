@@ -62,7 +62,7 @@ def test_post_services_redirects(client):
 def test_post_services_creates_in_db(client):
     client.post("/services", data={"name": "FormCreated", "team": "X"})
     r = client.get("/api/services")
-    names = [s["name"] for s in r.json()]
+    names = [s["name"] for s in r.json()["items"]]
     assert "FormCreated" in names
 
 

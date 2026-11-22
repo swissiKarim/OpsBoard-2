@@ -11,6 +11,40 @@
     </a>
   </div>
 
+  <!-- Filter / Search form – params reflected in URL for shareability -->
+  <form method="get" action="/services" data-testid="services-filter-form"
+        style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:flex-end;">
+    <div class="form-group" style="margin:0;" data-testid="filter-group-q">
+      <label for="filter-q" data-testid="label-q">Search</label>
+      <input id="filter-q" name="q" type="text" value="{{ q }}" placeholder="Search name / description…"
+             data-testid="input-q" style="min-width:200px;" />
+    </div>
+    <div class="form-group" style="margin:0;" data-testid="filter-group-status">
+      <label for="filter-status" data-testid="label-status">Status</label>
+      <select id="filter-status" name="status" data-testid="select-status">
+        <option value="" {% if not status %}selected{% endif %}>All statuses</option>
+        <option value="operational" {% if status == "operational" %}selected{% endif %}>Operational</option>
+        <option value="degraded" {% if status == "degraded" %}selected{% endif %}>Degraded</option>
+        <option value="outage" {% if status == "outage" %}selected{% endif %}>Outage</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;" data-testid="filter-group-sort">
+      <label for="filter-sort" data-testid="label-sort">Sort</label>
+      <select id="filter-sort" name="sort" data-testid="select-sort">
+        <option value="name_asc" {% if sort == "name_asc" %}selected{% endif %}>Name A–Z</option>
+        <option value="name_desc" {% if sort == "name_desc" %}selected{% endif %}>Name Z–A</option>
+        <option value="status_asc" {% if sort == "status_asc" %}selected{% endif %}>Status ↑</option>
+        <option value="status_desc" {% if sort == "status_desc" %}selected{% endif %}>Status ↓</option>
+        <option value="id_desc" {% if sort == "id_desc" %}selected{% endif %}>Newest first</option>
+        <option value="id_asc" {% if sort == "id_asc" %}selected{% endif %}>Oldest first</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <button type="submit" class="btn btn-primary" data-testid="btn-apply-filter">Apply</button>
+      <a href="/services" class="btn" data-testid="btn-clear-filter">Clear</a>
+    </div>
+  </form>
+
   {% if services %}
   <table style="width:100%;border-collapse:collapse;" data-testid="services-table">
     <thead>
@@ -59,12 +93,50 @@
   </table>
   {% else %}
   <div data-testid="services-empty" style="text-align:center;padding:64px 0;color:var(--color-text-muted);">
-    <p style="font-size:1.1rem;margin-bottom:16px;">No services yet.</p>
+    <p style="font-size:1.1rem;margin-bottom:16px;">No services found.</p>
     <a href="/services/new" data-testid="btn-new-service-empty"
        style="background:var(--color-primary);color:#fff;padding:8px 16px;border-radius:var(--radius);text-decoration:none;">
       Create your first service
     </a>
   </div>
+  {% endif %}
+
+  <!-- Pagination controls -->
+  {% if total_pages > 1 %}
+  <nav class="pagination" data-testid="pagination" aria-label="Pagination"
+       style="display:flex;gap:8px;align-items:center;margin-top:20px;flex-wrap:wrap;">
+    {% set base_params = "q=" ~ q ~ "&status=" ~ status ~ "&sort=" ~ sort %}
+    {% if page > 1 %}
+    <a href="/services?{{ base_params }}&page={{ page - 1 }}" class="btn btn-sm"
+       data-testid="pagination-prev" aria-label="Previous page">← Prev</a>
+    {% else %}
+    <span class="btn btn-sm" data-testid="pagination-prev" aria-disabled="true"
+          style="opacity:0.4;cursor:default;">← Prev</span>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+      {% if p == page %}
+      <span class="btn btn-sm btn-primary" data-testid="pagination-page-{{ p }}" aria-current="page">{{ p }}</span>
+      {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+      <a href="/services?{{ base_params }}&page={{ p }}" class="btn btn-sm"
+         data-testid="pagination-page-{{ p }}">{{ p }}</a>
+      {% elif p == page - 3 or p == page + 3 %}
+      <span data-testid="pagination-ellipsis" style="padding:0 4px;">…</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+    <a href="/services?{{ base_params }}&page={{ page + 1 }}" class="btn btn-sm"
+       data-testid="pagination-next" aria-label="Next page">Next →</a>
+    {% else %}
+    <span class="btn btn-sm" data-testid="pagination-next" aria-disabled="true"
+          style="opacity:0.4;cursor:default;">Next →</span>
+    {% endif %}
+
+    <span data-testid="pagination-info" style="color:var(--color-text-muted);font-size:0.875rem;">
+      Page {{ page }} of {{ total_pages }} ({{ total }} total)
+    </span>
+  </nav>
   {% endif %}
 </section>
 {% endblock %}

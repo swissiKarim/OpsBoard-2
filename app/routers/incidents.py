@@ -1,10 +1,12 @@
 """Incidents router – CRUD and status machine for OpsBoard incidents."""
 
 from datetime import datetime, timezone
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app import models
@@ -13,6 +15,8 @@ from app.status_engine import compute_service_status
 from app.templates_config import templates
 
 router = APIRouter(tags=["incidents"])
+
+PAGE_SIZE = 20
 
 # ---------------------------------------------------------------------------
 # Status machine – allowed forward transitions only
@@ -67,14 +71,72 @@ class StatusTransition(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+def _apply_incident_filters(query, q, status, severity, service_id):
+    """Apply search/filter predicates to an Incident query."""
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            or_(models.Incident.title.ilike(like), models.Incident.description.ilike(like))
+        )
+    if status:
+        query = query.filter(models.Incident.status == status)
+    if severity:
+        query = query.filter(models.Incident.severity == severity)
+    if service_id:
+        query = query.filter(models.Incident.service_id == service_id)
+    return query
+
+
+def _apply_incident_sort(query, sort: str):
+    sort_map = {
+        "id_desc": models.Incident.id.desc(),
+        "id_asc": models.Incident.id.asc(),
+        "created_desc": models.Incident.created_at.desc(),
+        "created_asc": models.Incident.created_at.asc(),
+        "severity_asc": models.Incident.severity.asc(),
+        "severity_desc": models.Incident.severity.desc(),
+        "status_asc": models.Incident.status.asc(),
+        "status_desc": models.Incident.status.desc(),
+    }
+    order = sort_map.get(sort, models.Incident.id.desc())
+    return query.order_by(order)
+
+
 @router.get("/incidents", response_class=HTMLResponse, include_in_schema=False)
-def incidents_list_page(request: Request, db: Session = Depends(get_db)):
-    incidents = db.query(models.Incident).order_by(models.Incident.id.desc()).all()
+def incidents_list_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    q: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    severity: Optional[str] = Query(None),
+    service_id: Optional[int] = Query(None),
+    sort: Optional[str] = Query("id_desc"),
+    page: int = Query(1, ge=1),
+):
+    base_q = db.query(models.Incident)
+    base_q = _apply_incident_filters(base_q, q, status, severity, service_id)
+    base_q = _apply_incident_sort(base_q, sort)
+    total = base_q.count()
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = min(page, total_pages)
+    incidents = base_q.offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
     services = db.query(models.Service).all()
     return templates.TemplateResponse(
         request=request,
         name="incidents_list.html",
-        context={"incidents": incidents, "services": services},
+        context={
+            "incidents": incidents,
+            "services": services,
+            "q": q or "",
+            "status": status or "",
+            "severity": severity or "",
+            "service_id": service_id or "",
+            "sort": sort or "id_desc",
+            "page": page,
+            "total": total,
+            "total_pages": total_pages,
+            "page_size": PAGE_SIZE,
+        },
     )
 
 
@@ -97,13 +159,36 @@ def incident_detail_page(incident_id: int, request: Request, db: Session = Depen
 
 class IncidentListResponse(BaseModel):
     total: int
+    items_count: int
+    page: int
+    total_pages: int
     items: list[IncidentResponse]
 
 
 @router.get("/api/incidents", response_model=IncidentListResponse)
-def list_incidents(db: Session = Depends(get_db)):
-    items = db.query(models.Incident).all()
-    return IncidentListResponse(total=len(items), items=items)
+def list_incidents(
+    db: Session = Depends(get_db),
+    q: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    severity: Optional[str] = Query(None),
+    service_id: Optional[int] = Query(None),
+    sort: Optional[str] = Query("id_desc"),
+    page: int = Query(1, ge=1),
+):
+    base_q = db.query(models.Incident)
+    base_q = _apply_incident_filters(base_q, q, status, severity, service_id)
+    base_q = _apply_incident_sort(base_q, sort)
+    total = base_q.count()
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = min(page, total_pages)
+    items = base_q.offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
+    return IncidentListResponse(
+        total=total,
+        items_count=len(items),
+        page=page,
+        total_pages=total_pages,
+        items=items,
+    )
 
 
 @router.get("/api/incidents/{incident_id}", response_model=IncidentResponse)

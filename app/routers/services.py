@@ -1,6 +1,8 @@
 """Services router – CRUD for OpsBoard services (UI + REST API)."""
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -12,6 +14,8 @@ from app.status_engine import compute_service_status
 
 router = APIRouter(tags=["services"])
 templates = Jinja2Templates(directory="app/templates")
+
+PAGE_SIZE = 20
 
 
 # ---------------------------------------------------------------------------
@@ -41,11 +45,6 @@ class ServiceResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class ServiceListResponse(BaseModel):
-    total: int
-    items: list[ServiceResponse]
-
-
 # ---------------------------------------------------------------------------
 # Helper: list all table names in DB
 # ---------------------------------------------------------------------------
@@ -68,16 +67,62 @@ def db_tables(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 
+def _apply_service_filters(query, q, status):
+    """Apply search/filter predicates to a Service query."""
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            models.Service.name.ilike(like) | models.Service.description.ilike(like)
+        )
+    if status:
+        query = query.filter(models.Service.computed_status == status)
+    return query
+
+
+def _apply_service_sort(query, sort: str):
+    sort_map = {
+        "name_asc": models.Service.name.asc(),
+        "name_desc": models.Service.name.desc(),
+        "status_asc": models.Service.computed_status.asc(),
+        "status_desc": models.Service.computed_status.desc(),
+        "id_desc": models.Service.id.desc(),
+        "id_asc": models.Service.id.asc(),
+    }
+    return query.order_by(sort_map.get(sort, models.Service.name.asc()))
+
+
 @router.get("/services", response_class=HTMLResponse, tags=["services-ui"])
-def list_services_ui(request: Request, db: Session = Depends(get_db)):
-    """Render the services list page."""
-    services = db.query(models.Service).all()
+def list_services_ui(
+    request: Request,
+    db: Session = Depends(get_db),
+    q: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    sort: Optional[str] = Query("name_asc"),
+    page: int = Query(1, ge=1),
+):
+    """Render the services list page with search/filter/sort/pagination."""
+    base_q = db.query(models.Service)
+    base_q = _apply_service_filters(base_q, q, status)
+    base_q = _apply_service_sort(base_q, sort)
+    total = base_q.count()
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = min(page, total_pages)
+    services = base_q.offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
     for svc in services:
         svc.computed_status = compute_service_status(svc.id, db)
     return templates.TemplateResponse(
         request,
         "services/list.html",
-        {"services": services},
+        {
+            "services": services,
+            "q": q or "",
+            "status": status or "",
+            "sort": sort or "name_asc",
+            "page": page,
+            "total": total,
+            "total_pages": total_pages,
+            "page_size": PAGE_SIZE,
+        },
     )
 
 
@@ -196,14 +241,40 @@ def delete_service_ui(service_id: int, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/api/services", response_model=list[ServiceResponse], tags=["services-api"])
-def api_list_services(db: Session = Depends(get_db)):
-    services = db.query(models.Service).all()
+class ServiceListResponse(BaseModel):
+    total: int
+    items_count: int
+    page: int
+    total_pages: int
+    items: list[ServiceResponse]
+
+
+@router.get("/api/services", response_model=ServiceListResponse, tags=["services-api"])
+def api_list_services(
+    db: Session = Depends(get_db),
+    q: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    sort: Optional[str] = Query("name_asc"),
+    page: int = Query(1, ge=1),
+):
+    base_q = db.query(models.Service)
+    base_q = _apply_service_filters(base_q, q, status)
+    base_q = _apply_service_sort(base_q, sort)
+    total = base_q.count()
+    total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    page = min(page, total_pages)
+    services = base_q.offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).all()
     result = []
     for svc in services:
         svc.computed_status = compute_service_status(svc.id, db)
         result.append(ServiceResponse.model_validate(svc))
-    return result
+    return ServiceListResponse(
+        total=total,
+        items_count=len(result),
+        page=page,
+        total_pages=total_pages,
+        items=result,
+    )
 
 
 @router.post("/api/services", response_model=ServiceResponse, status_code=201, tags=["services-api"])
