@@ -687,15 +687,31 @@ textarea { resize: vertical; }
    Toast
    ========================================================= */
 .toast {
-  margin-top: var(--space-4);
   padding: var(--space-3) var(--space-4);
   background: var(--color-success);
   color: #fff;
   border-radius: var(--radius);
   font-size: 0.875rem;
+  font-weight: 500;
   animation: fade-in 0.2s ease;
 }
 .toast.hidden { display: none; }
+
+/* Global toast – fixed bottom-right corner */
+.toast-global {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 2000;
+  min-width: 260px;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
 
 /* =========================================================
    Skeleton loading states
