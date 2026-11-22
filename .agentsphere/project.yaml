@@ -9,6 +9,8 @@ components:
     image: agentsphere/sandbox-polyglot
     kind: python
   verify:
+  - ruff check .
+  - pytest
   - pip install -r requirements.txt -q --break-system-packages
   - python -m pytest -q --tb=short --junitxml=.agentsphere/reports/junit.xml
   artifacts_ignore:

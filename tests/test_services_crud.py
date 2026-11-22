@@ -114,7 +114,7 @@ def test_delete_service_removes_related_incidents(client):
     # Delete service
     client.delete(f"/api/services/{svc_id}")
     # Incidents for that service should be gone
-    all_inc = client.get("/api/incidents").json()
+    all_inc = client.get("/api/incidents").json().get("items", [])
     assert all(i["service_id"] != svc_id for i in all_inc)
 
 

@@ -23,7 +23,9 @@ httpx.post(
 
 del_resp = httpx.delete(f"{base}/api/services/{svc_id}", timeout=10)
 
-remaining = httpx.get(f"{base}/api/incidents/", timeout=10).json()
+remaining_resp = httpx.get(f"{base}/api/incidents/", timeout=10).json()
+# /api/incidents returns {total, items}
+remaining = remaining_resp.get("items", remaining_resp) if isinstance(remaining_resp, dict) else remaining_resp
 incidents_for_service = sum(1 for i in remaining if i["service_id"] == svc_id)
 
 print(json.dumps({
