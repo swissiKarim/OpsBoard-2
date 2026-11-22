@@ -2,8 +2,9 @@ schemaVersion: 4
 rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, incident
   CRUD/status-machine/timeline, dashboard KPIs with inline-SVG bar chart, seed command
   for demo data, service CRUD UI + REST API, search/filter/sort/pagination for lists,
-  error handling (404/422/400), OpenAPI docs, pytest suite, and US-07 UI shell with
-  sidebar/header/design-system/dark-mode/accessibility
+  error handling (404/422/400), OpenAPI docs, pytest suite, US-07 UI shell with sidebar/header/design-system/dark-mode/accessibility,
+  US-08 New Incident modal with focus trap, Esc close, toast notification, and correct
+  data-testid attributes
 components:
 - name: app
   path: .
@@ -77,6 +78,13 @@ definition_of_done:
 - All form inputs have associated label elements
 - Empty state elements shown when lists are empty
 - Tables rendered with table-card class for mobile card layout
+- data-testid="btn-new-incident" present on /incidents and /dashboard pages
+- data-testid="modal-new-incident" dialog with labelled inputs for title, service,
+  severity, description
+- Pressing Esc closes modal; JS focus trap keeps focus inside modal while open
+- Submitting valid form POSTs to /api/incidents and closes modal
+- data-testid="toast-incident-created" shown after successful creation
+- Modal and all interactive elements carry data-testid attributes
 network:
   needs: []
 services:

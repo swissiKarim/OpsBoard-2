@@ -5,7 +5,7 @@
 <section data-testid="incidents-section">
   <div class="section-header" data-testid="incidents-header">
     <h1 data-testid="incidents-title">Incidents</h1>
-    <button data-testid="new-incident-btn" class="btn btn-primary" onclick="document.getElementById('new-incident-modal').classList.add('open')">
+    <button data-testid="btn-new-incident" id="btn-new-incident" class="btn btn-primary" aria-haspopup="dialog">
       + New Incident
     </button>
   </div>
@@ -143,85 +143,49 @@
 </section>
 
 <!-- New Incident Modal -->
-<div id="new-incident-modal" class="modal-overlay" data-testid="new-incident-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal" data-testid="modal-content">
-    <div class="modal-header" data-testid="modal-header">
-      <h2 id="modal-title" data-testid="modal-title">New Incident</h2>
-      <button class="modal-close" data-testid="modal-close" aria-label="Close modal" onclick="document.getElementById('new-incident-modal').classList.remove('open')">✕</button>
+<div id="modal-new-incident" class="modal-overlay" data-testid="modal-new-incident" role="dialog" aria-modal="true" aria-labelledby="modal-new-incident-title">
+  <div class="modal" data-testid="modal-new-incident-content">
+    <div class="modal-header" data-testid="modal-new-incident-header">
+      <h2 id="modal-new-incident-title" data-testid="modal-new-incident-heading">New Incident</h2>
+      <button class="modal-close" data-testid="modal-close-btn" aria-label="Close modal">✕</button>
     </div>
-    <form id="new-incident-form" data-testid="new-incident-form">
+    <form id="new-incident-form" data-testid="new-incident-form" novalidate>
       <div class="form-group" data-testid="form-group-title">
-        <label for="inc-title" data-testid="label-title">Title</label>
-        <input id="inc-title" name="title" type="text" required data-testid="input-title" />
+        <label for="modal-incident-title-input" data-testid="label-modal-title">Title <span aria-hidden="true">*</span></label>
+        <input id="modal-incident-title-input" name="title" type="text" required
+               data-testid="modal-incident-title" autocomplete="off" />
       </div>
       <div class="form-group" data-testid="form-group-service">
-        <label for="inc-service" data-testid="label-service">Service</label>
-        <select id="inc-service" name="service_id" required data-testid="select-service">
+        <label for="modal-incident-service-input" data-testid="label-modal-service">Service <span aria-hidden="true">*</span></label>
+        <select id="modal-incident-service-input" name="service_id" required
+                data-testid="modal-incident-service">
           {% for svc in services %}
           <option value="{{ svc.id }}" data-testid="option-service-{{ svc.id }}">{{ svc.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="form-group" data-testid="form-group-severity">
-        <label for="inc-severity" data-testid="label-severity">Severity</label>
-        <select id="inc-severity" name="severity" required data-testid="select-severity">
+        <label for="modal-incident-severity-input" data-testid="label-modal-severity">Severity <span aria-hidden="true">*</span></label>
+        <select id="modal-incident-severity-input" name="severity" required
+                data-testid="modal-incident-severity">
           <option value="SEV1" data-testid="option-sev1">SEV1</option>
           <option value="SEV2" data-testid="option-sev2">SEV2</option>
           <option value="SEV3" data-testid="option-sev3">SEV3</option>
         </select>
       </div>
       <div class="form-group" data-testid="form-group-description">
-        <label for="inc-description" data-testid="label-description">Description</label>
-        <textarea id="inc-description" name="description" rows="4" data-testid="input-description"></textarea>
+        <label for="modal-incident-description-input" data-testid="label-modal-description">Description</label>
+        <textarea id="modal-incident-description-input" name="description" rows="4"
+                  data-testid="modal-incident-description"></textarea>
       </div>
       <div class="form-actions" data-testid="form-actions">
-        <button type="button" class="btn" data-testid="btn-cancel" onclick="document.getElementById('new-incident-modal').classList.remove('open')">Cancel</button>
-        <button type="submit" class="btn btn-primary" data-testid="btn-submit">Create Incident</button>
+        <button type="button" class="btn" data-testid="modal-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-testid="modal-submit-btn">Create Incident</button>
       </div>
     </form>
-    <div id="toast" class="toast hidden" data-testid="toast" role="status" aria-live="polite"></div>
   </div>
 </div>
 
-<script>
-(function() {
-  // Close modal on Escape
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.getElementById('new-incident-modal').classList.remove('open');
-    }
-  });
-
-  // Form submit via fetch
-  document.getElementById('new-incident-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const form = e.target;
-    const payload = {
-      title: form.title.value,
-      service_id: parseInt(form.service_id.value),
-      severity: form.severity.value,
-      description: form.description.value,
-    };
-    try {
-      const resp = await fetch('/api/incidents', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        const toast = document.getElementById('toast');
-        toast.textContent = 'Incident #' + data.id + ' created!';
-        toast.classList.remove('hidden');
-        setTimeout(() => { window.location.reload(); }, 1200);
-      } else {
-        const err = await resp.json();
-        alert('Error: ' + (err.detail || JSON.stringify(err)));
-      }
-    } catch(ex) {
-      alert('Network error: ' + ex.message);
-    }
-  });
-})();
-</script>
+<!-- Toast notification -->
+<div id="toast-incident-created" class="toast toast-global hidden" data-testid="toast-incident-created" role="status" aria-live="polite"></div>
 {% endblock %}

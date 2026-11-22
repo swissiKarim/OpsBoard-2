@@ -84,12 +84,16 @@ def _dashboard_context(db: Session) -> dict:
         .all()
     )
 
+    # Services list for the New Incident modal
+    services = db.query(models.Service).order_by(models.Service.name).all()
+
     return {
         "open_incidents_count": open_count,
         "affected_services_count": affected_services_count,
         "mean_resolution_hours": mean_resolution_hours,
         "svg_chart": svg_chart,
         "recent_incidents": recent_incidents,
+        "services": services,
     }
 
 
