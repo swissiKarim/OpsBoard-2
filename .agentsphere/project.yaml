@@ -1,7 +1,8 @@
 schemaVersion: 4
 rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, incident
   CRUD/status-machine/timeline, dashboard KPIs with inline-SVG bar chart, seed command
-  for demo data, service CRUD UI + REST API, and pytest suite
+  for demo data, service CRUD UI + REST API, error handling (404/422/400), OpenAPI
+  docs, and pytest suite
 components:
 - name: app
   path: .
@@ -49,6 +50,14 @@ definition_of_done:
 - PUT /api/services/{id} updates name, description and team
 - DELETE /api/services/{id} removes service and related incidents
 - GET /api/services and POST /api/services return JSON
+- GET /api/services/{id} returns 404 with JSON detail for unknown ID
+- GET /api/incidents/{id} returns 404 with JSON detail for unknown ID
+- POST /api/incidents with missing fields returns 422 with per-field errors
+- POST /api/services with missing name returns 422 with per-field errors
+- POST /api/incidents/{id}/status with backward transition returns 400 with detail
+- GET /docs returns 200 and contains swagger UI
+- GET /openapi.json returns valid OpenAPI schema with openapi field
+- pytest tests/test_error_handling.py covers all 404, 422 and 400 cases
 network:
   needs: []
 services:
