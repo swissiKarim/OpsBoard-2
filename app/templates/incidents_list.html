@@ -10,6 +10,57 @@
     </button>
   </div>
 
+  <!-- Filter / Search form – params reflected in URL for shareability -->
+  <form method="get" action="/incidents" data-testid="incidents-filter-form" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:flex-end;">
+    <div class="form-group" style="margin:0;" data-testid="filter-group-q">
+      <label for="filter-q" data-testid="label-q">Search</label>
+      <input id="filter-q" name="q" type="text" value="{{ q }}" placeholder="Search title / description…"
+             data-testid="input-q" style="min-width:200px;" />
+    </div>
+    <div class="form-group" style="margin:0;" data-testid="filter-group-status">
+      <label for="filter-status" data-testid="label-status">Status</label>
+      <select id="filter-status" name="status" data-testid="select-status">
+        <option value="" {% if not status %}selected{% endif %}>All statuses</option>
+        <option value="open" {% if status == "open" %}selected{% endif %}>Open</option>
+        <option value="investigating" {% if status == "investigating" %}selected{% endif %}>Investigating</option>
+        <option value="resolved" {% if status == "resolved" %}selected{% endif %}>Resolved</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;" data-testid="filter-group-severity">
+      <label for="filter-severity" data-testid="label-severity">Severity</label>
+      <select id="filter-severity" name="severity" data-testid="select-severity">
+        <option value="" {% if not severity %}selected{% endif %}>All severities</option>
+        <option value="SEV1" {% if severity == "SEV1" %}selected{% endif %}>SEV1</option>
+        <option value="SEV2" {% if severity == "SEV2" %}selected{% endif %}>SEV2</option>
+        <option value="SEV3" {% if severity == "SEV3" %}selected{% endif %}>SEV3</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;" data-testid="filter-group-service">
+      <label for="filter-service" data-testid="label-service-filter">Service</label>
+      <select id="filter-service" name="service_id" data-testid="select-service-id">
+        <option value="" {% if not service_id %}selected{% endif %}>All services</option>
+        {% for svc in services %}
+        <option value="{{ svc.id }}" {% if service_id == svc.id %}selected{% endif %}>{{ svc.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;" data-testid="filter-group-sort">
+      <label for="filter-sort" data-testid="label-sort">Sort</label>
+      <select id="filter-sort" name="sort" data-testid="select-sort">
+        <option value="id_desc" {% if sort == "id_desc" %}selected{% endif %}>Newest first</option>
+        <option value="id_asc" {% if sort == "id_asc" %}selected{% endif %}>Oldest first</option>
+        <option value="severity_asc" {% if sort == "severity_asc" %}selected{% endif %}>Severity ↑</option>
+        <option value="severity_desc" {% if sort == "severity_desc" %}selected{% endif %}>Severity ↓</option>
+        <option value="status_asc" {% if sort == "status_asc" %}selected{% endif %}>Status ↑</option>
+        <option value="status_desc" {% if sort == "status_desc" %}selected{% endif %}>Status ↓</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <button type="submit" class="btn btn-primary" data-testid="btn-apply-filter">Apply</button>
+      <a href="/incidents" class="btn" data-testid="btn-clear-filter">Clear</a>
+    </div>
+  </form>
+
   {% if incidents %}
   <table class="table" data-testid="incidents-table">
     <thead>
@@ -47,8 +98,40 @@
   </table>
   {% else %}
   <div class="empty-state" data-testid="incidents-empty">
-    <p data-testid="incidents-empty-msg">No incidents yet. Create the first one!</p>
+    <p data-testid="incidents-empty-msg">No incidents found.</p>
   </div>
+  {% endif %}
+
+  <!-- Pagination controls -->
+  {% if total_pages > 1 %}
+  <nav class="pagination" data-testid="pagination" aria-label="Pagination" style="display:flex;gap:8px;align-items:center;margin-top:20px;flex-wrap:wrap;">
+    {% set base_params = "q=" ~ q ~ "&status=" ~ status ~ "&severity=" ~ severity ~ "&service_id=" ~ service_id ~ "&sort=" ~ sort %}
+    {% if page > 1 %}
+    <a href="/incidents?{{ base_params }}&page={{ page - 1 }}" class="btn btn-sm" data-testid="pagination-prev" aria-label="Previous page">← Prev</a>
+    {% else %}
+    <span class="btn btn-sm" data-testid="pagination-prev" aria-disabled="true" style="opacity:0.4;cursor:default;">← Prev</span>
+    {% endif %}
+
+    {% for p in range(1, total_pages + 1) %}
+      {% if p == page %}
+      <span class="btn btn-sm btn-primary" data-testid="pagination-page-{{ p }}" aria-current="page">{{ p }}</span>
+      {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+      <a href="/incidents?{{ base_params }}&page={{ p }}" class="btn btn-sm" data-testid="pagination-page-{{ p }}">{{ p }}</a>
+      {% elif p == page - 3 or p == page + 3 %}
+      <span data-testid="pagination-ellipsis" style="padding:0 4px;">…</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+    <a href="/incidents?{{ base_params }}&page={{ page + 1 }}" class="btn btn-sm" data-testid="pagination-next" aria-label="Next page">Next →</a>
+    {% else %}
+    <span class="btn btn-sm" data-testid="pagination-next" aria-disabled="true" style="opacity:0.4;cursor:default;">Next →</span>
+    {% endif %}
+
+    <span data-testid="pagination-info" style="color:var(--color-text-muted);font-size:0.875rem;">
+      Page {{ page }} of {{ total_pages }} ({{ total }} total)
+    </span>
+  </nav>
   {% endif %}
 </section>
 
