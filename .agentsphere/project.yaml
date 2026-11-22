@@ -42,11 +42,14 @@ definition_of_done:
 - All KPI tile and chart container elements have data-testid attributes
 - python -m app.seed creates exactly 6 services and 25 incidents
 - Seed command is idempotent (clears and re-seeds on second run)
-- GET /api/services returns paginated JSON with total, items_count, page, total_pages, items
-- GET /api/incidents returns paginated JSON with total, items_count, page, total_pages, items
+- GET /api/services returns paginated JSON with total, items_count, page, total_pages,
+  items
+- GET /api/incidents returns paginated JSON with total, items_count, page, total_pages,
+  items
 - GET /incidents supports q, status, severity, service_id, sort, page query params
 - GET /services supports q, status, sort, page query params
-- Filter and search params reflected in URL; reloading restores the same filtered view
+- Filter and search params reflected in URL; reloading restores the same filtered
+  view
 - Pagination controls rendered server-side with data-testid="pagination"
 - Filter form inputs have labels and data-testid attributes
 - GET /services renders Jinja2 list with data-testid rows and status badges
