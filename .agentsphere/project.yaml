@@ -2,7 +2,8 @@ schemaVersion: 4
 rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, incident
   CRUD/status-machine/timeline, dashboard KPIs with inline-SVG bar chart, seed command
   for demo data, service CRUD UI + REST API, search/filter/sort/pagination for lists,
-  error handling (404/422/400), OpenAPI docs, and pytest suite
+  error handling (404/422/400), OpenAPI docs, pytest suite, and US-07 UI shell with
+  sidebar/header/design-system/dark-mode/accessibility
 components:
 - name: app
   path: .
@@ -66,6 +67,16 @@ definition_of_done:
 - GET /docs returns 200 and contains swagger UI
 - GET /openapi.json returns valid OpenAPI schema with openapi field
 - pytest tests/test_error_handling.py covers all 404, 422 and 400 cases
+- Sidebar with data-testid="sidebar" and data-testid="sidebar-toggle" rendered on
+  all pages
+- Global search input data-testid="global-search" present in header on all pages
+- CSS served from /static/css/main.css with CSS variables (--) for all colours
+- Status badges display text labels (Operational/Degraded/Outage) in addition to colour
+- Theme toggle data-testid="theme-toggle" in header; persists choice in localStorage
+- CSS contains prefers-reduced-motion media query disabling animations
+- All form inputs have associated label elements
+- Empty state elements shown when lists are empty
+- Tables rendered with table-card class for mobile card layout
 network:
   needs: []
 services:

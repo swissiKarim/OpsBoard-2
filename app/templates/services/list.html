@@ -46,27 +46,27 @@
   </form>
 
   {% if services %}
-  <table style="width:100%;border-collapse:collapse;" data-testid="services-table">
+  <div class="table-responsive">
+  <table class="table table-card" data-testid="services-table">
     <thead>
-      <tr style="border-bottom:2px solid var(--color-border);text-align:left;">
-        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Name</th>
-        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Team</th>
-        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Status</th>
-        <th style="padding:10px 12px;font-size:0.8rem;text-transform:uppercase;color:var(--color-text-muted);">Actions</th>
+      <tr>
+        <th>Name</th>
+        <th>Team</th>
+        <th>Status</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for svc in services %}
-      <tr data-testid="service-row-{{ svc.id }}"
-          style="border-bottom:1px solid var(--color-border);">
-        <td style="padding:12px;">
+      <tr data-testid="service-row-{{ svc.id }}">
+        <td data-label="Name">
           <a href="/services/{{ svc.id }}" data-testid="service-link-{{ svc.id }}"
-             style="color:var(--color-primary);font-weight:600;text-decoration:none;">
+             style="font-weight:600;">
             {{ svc.name }}
           </a>
         </td>
-        <td style="padding:12px;color:var(--color-text-muted);">{{ svc.team }}</td>
-        <td style="padding:12px;">
+        <td data-label="Team" style="color:var(--color-text-muted);">{{ svc.team }}</td>
+        <td data-label="Status">
           {% if svc.computed_status == "operational" %}
             <span class="badge badge-operational" data-testid="status-badge-{{ svc.id }}">✓ Operational</span>
           {% elif svc.computed_status == "degraded" %}
@@ -75,29 +75,29 @@
             <span class="badge badge-outage" data-testid="status-badge-{{ svc.id }}">✗ Outage</span>
           {% endif %}
         </td>
-        <td style="padding:12px;display:flex;gap:8px;">
-          <a href="/services/{{ svc.id }}/edit" data-testid="edit-service-{{ svc.id }}"
-             style="font-size:0.8rem;color:var(--color-primary);text-decoration:none;">Edit</a>
+        <td data-label="Actions" style="display:flex;gap:8px;">
+          <a href="/services/{{ svc.id }}/edit" class="btn btn-sm" data-testid="edit-service-{{ svc.id }}">Edit</a>
           <form method="post" action="/services/{{ svc.id }}/delete"
                 onsubmit="return confirm('Delete service and all its incidents?')"
                 style="display:inline;">
-            <button type="submit" data-testid="delete-service-{{ svc.id }}"
-                    style="font-size:0.8rem;color:var(--color-danger);background:none;border:none;cursor:pointer;padding:0;">
-              Delete
-            </button>
+            <button type="submit" class="btn btn-sm btn-danger" data-testid="delete-service-{{ svc.id }}">Delete</button>
           </form>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% else %}
-  <div data-testid="services-empty" style="text-align:center;padding:64px 0;color:var(--color-text-muted);">
-    <p style="font-size:1.1rem;margin-bottom:16px;">No services found.</p>
-    <a href="/services/new" data-testid="btn-new-service-empty"
-       style="background:var(--color-primary);color:#fff;padding:8px 16px;border-radius:var(--radius);text-decoration:none;">
-      Create your first service
-    </a>
+  <div class="empty-state" data-testid="services-empty">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2"/>
+      <path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <p>No services found.</p>
+    <p class="empty-state-hint">
+      <a href="/services/new" data-testid="btn-new-service-empty" class="btn btn-primary">Create your first service</a>
+    </p>
   </div>
   {% endif %}
 
