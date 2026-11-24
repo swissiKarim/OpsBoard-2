@@ -71,6 +71,16 @@ class StatusTransition(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+def _coerce_optional_int(value: Optional[str]) -> Optional[int]:
+    """Convert a query-string value to int, treating empty/whitespace strings as None."""
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
 def _apply_incident_filters(query, q, status, severity, service_id):
     """Apply search/filter predicates to an Incident query."""
     if q:
@@ -109,12 +119,14 @@ def incidents_list_page(
     q: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     severity: Optional[str] = Query(None),
-    service_id: Optional[int] = Query(None),
+    service_id: Optional[str] = Query(None),
     sort: Optional[str] = Query("id_desc"),
     page: int = Query(1, ge=1),
 ):
+    service_id_int = _coerce_optional_int(service_id)
+    severity = severity if severity and severity.strip() else None
     base_q = db.query(models.Incident)
-    base_q = _apply_incident_filters(base_q, q, status, severity, service_id)
+    base_q = _apply_incident_filters(base_q, q, status, severity, service_id_int)
     base_q = _apply_incident_sort(base_q, sort)
     total = base_q.count()
     total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
@@ -130,7 +142,7 @@ def incidents_list_page(
             "q": q or "",
             "status": status or "",
             "severity": severity or "",
-            "service_id": service_id or "",
+            "service_id": service_id_int or "",
             "sort": sort or "id_desc",
             "page": page,
             "total": total,
@@ -171,12 +183,14 @@ def list_incidents(
     q: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     severity: Optional[str] = Query(None),
-    service_id: Optional[int] = Query(None),
+    service_id: Optional[str] = Query(None),
     sort: Optional[str] = Query("id_desc"),
     page: int = Query(1, ge=1),
 ):
+    service_id_int = _coerce_optional_int(service_id)
+    severity = severity if severity and severity.strip() else None
     base_q = db.query(models.Incident)
-    base_q = _apply_incident_filters(base_q, q, status, severity, service_id)
+    base_q = _apply_incident_filters(base_q, q, status, severity, service_id_int)
     base_q = _apply_incident_sort(base_q, sort)
     total = base_q.count()
     total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
