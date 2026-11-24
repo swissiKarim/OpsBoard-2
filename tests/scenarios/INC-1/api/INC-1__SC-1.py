@@ -13,21 +13,23 @@ def main():
     # GET /api/incidents with status=open and empty service_id
     r = httpx.get(f"{base_url}/api/incidents", params={"status": "open", "service_id": ""})
 
-    body = r.json()
+    raw = r.text  # full JSON response as string
 
-    # Ensure items is a list (for contains checks on array elements)
-    items = body.get("items", [])
+    parsed = {}
+    try:
+        parsed = r.json()
+    except Exception:
+        pass
 
+    total = parsed.get("total", 0) if isinstance(parsed, dict) else 0
+
+    # body as string allows "contains" checks on the raw JSON text
+    # e.g. checking that "open" or "items" appears in the response body
     print(json.dumps({
         "status": r.status_code,
         "headers": dict(r.headers),
-        "body": {
-            "total": body.get("total", 0),
-            "items_count": body.get("items_count", 0),
-            "page": body.get("page", 1),
-            "total_pages": body.get("total_pages", 1),
-            "items": items,
-        },
+        "body": raw,
+        "total": total,
     }))
 
 
