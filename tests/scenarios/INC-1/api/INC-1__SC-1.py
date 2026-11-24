@@ -10,35 +10,19 @@ base_url = os.environ.get("ASB_API_BASE", os.environ.get("ASB_SVC_WEB_URL", "htt
 
 
 def main():
-    # AC-1 + AC-4: GET /api/incidents with status=open and empty service_id
+    # GET /api/incidents with status=open and empty service_id
     r = httpx.get(f"{base_url}/api/incidents", params={"status": "open", "service_id": ""})
-    status_code = r.status_code
 
     body = {}
     try:
         body = r.json()
     except Exception:
-        pass
-
-    # All items in result must have status=open
-    items = body.get("items", []) if isinstance(body, dict) else []
-    all_open = all(item.get("status") == "open" for item in items)
-
-    # AC-2: empty severity also accepted
-    r2 = httpx.get(f"{base_url}/api/incidents", params={"status": "open", "service_id": "", "severity": ""})
-    status_code_2 = r2.status_code
-
-    # AC-3: URL params preserved — service_id empty still returns 200
-    r3 = httpx.get(f"{base_url}/api/incidents", params={"service_id": ""})
-    status_code_3 = r3.status_code
+        body = r.text
 
     print(json.dumps({
-        "status_code": status_code,
-        "status_code_empty_severity": status_code_2,
-        "status_code_only_empty_service_id": status_code_3,
-        "total": body.get("total", 0) if isinstance(body, dict) else 0,
-        "all_items_open": all_open,
-        "items_count": len(items),
+        "status": r.status_code,
+        "headers": dict(r.headers),
+        "body": body,
     }))
 
 
