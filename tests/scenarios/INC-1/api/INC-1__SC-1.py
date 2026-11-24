@@ -13,11 +13,21 @@ def main():
     # GET /api/incidents with status=open and empty service_id
     r = httpx.get(f"{base_url}/api/incidents", params={"status": "open", "service_id": ""})
 
-    # Return body as string so `contains` checks work on the raw JSON text
+    body = r.json()
+
+    # Ensure items is a list (for contains checks on array elements)
+    items = body.get("items", [])
+
     print(json.dumps({
         "status": r.status_code,
         "headers": dict(r.headers),
-        "body": r.text,
+        "body": {
+            "total": body.get("total", 0),
+            "items_count": body.get("items_count", 0),
+            "page": body.get("page", 1),
+            "total_pages": body.get("total_pages", 1),
+            "items": items,
+        },
     }))
 
 
