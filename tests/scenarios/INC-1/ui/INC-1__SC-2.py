@@ -11,34 +11,41 @@ with page_session() as (page, base_url):
     # Select "open" in the status dropdown
     page.select_option('[data-testid="select-status"]', value="open")
 
-    # Leave service_id as empty (default "All services" = "")
-    # Click Apply
+    # Leave service_id as the default empty value ("All services")
+    # Click Apply filter button
     page.click('[data-testid="btn-apply-filter"]')
     page.wait_for_load_state("networkidle")
 
-    # Gather results
+    # Determine page_status: check for error page markers
+    # (HTTP error pages typically show h1/title with error text, not normal content)
     final_url = page.url
-    page_status = 200  # if we got here without crash, page loaded successfully
-    error_text_present = False
+
+    # Check for error indicators via specific error page elements
+    has_500 = page.query_selector('h1:has-text("500")') is not None
+    has_422 = page.query_selector('h1:has-text("422")') is not None
+    has_unprocessable = "Unprocessable Entity" in page.title()
+    has_internal_error = "Internal Server Error" in page.title()
+
+    error_text_present = has_500 or has_422 or has_unprocessable or has_internal_error
+
+    if has_500 or has_internal_error:
+        page_status = 500
+    elif has_422 or has_unprocessable:
+        page_status = 422
+    else:
+        page_status = 200
 
     body_text = page.inner_text("body")
-    # Check for error indicators
-    if "422" in body_text or "Unprocessable" in body_text or "Internal Server Error" in body_text or "500" in body_text:
-        error_text_present = True
-        page_status = 422 if "422" in body_text or "Unprocessable" in body_text else 500
-
-    # visible_text_contains: body text should contain "open" (from status badges or filter)
     visible_text_contains = body_text
+
+    # Count result rows
+    result_count = 0
+    rows = page.query_selector_all('[data-testid^="incident-row-"]')
+    result_count = len(rows)
 
     # Check key testids visible
     select_status_visible = page.is_visible('[data-testid="select-status"]')
     btn_apply_visible = page.is_visible('[data-testid="btn-apply-filter"]')
-
-    result_count = 0
-    tbody = page.query_selector('[data-testid="incidents-tbody"]')
-    if tbody:
-        rows = page.query_selector_all('[data-testid^="incident-row-"]')
-        result_count = len(rows)
 
     screenshot(page, "INC-1/SC-2")
 
