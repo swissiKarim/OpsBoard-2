@@ -4,7 +4,7 @@ rationale: FastAPI OpsBoard with SQLite/SQLAlchemy ORM models, status engine, in
   for demo data, service CRUD UI + REST API, search/filter/sort/pagination for lists,
   error handling (404/422/400), OpenAPI docs, pytest suite, US-07 UI shell with sidebar/header/design-system/dark-mode/accessibility,
   US-08 New Incident modal with focus trap, Esc close, toast notification, and correct
-  data-testid attributes
+  data-testid attributes, INC-4 whitespace title validation for incident creation
 components:
 - name: app
   path: .
@@ -35,6 +35,7 @@ definition_of_done:
 - GET /health returns 200 with {"status":"ok"}
 - compute_service_status() correctly derives outage/degraded/operational
 - POST /api/incidents creates incident with open status and recalculates service status
+- POST /api/incidents with whitespace-only title returns 422 (INC-4 fix)
 - POST /api/incidents/{id}/status enforces open→investigating→resolved only
 - PUT /api/incidents/{id} updates title/description but not status/severity
 - GET /incidents/{id} renders timeline and comment input with data-testid attributes
