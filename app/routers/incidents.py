@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -42,6 +42,13 @@ class IncidentCreate(BaseModel):
     service_id: int
     severity: str  # SEV1 | SEV2 | SEV3
     description: str = ""
+
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("title must not be blank or whitespace-only")
+        return v
 
 
 class IncidentUpdate(BaseModel):
